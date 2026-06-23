@@ -4,6 +4,12 @@ import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
 import './index.css'
 
+const redirect = sessionStorage.getItem('gh-pages-redirect');
+if (redirect) {
+  sessionStorage.removeItem('gh-pages-redirect');
+  window.history.replaceState(null, '', redirect);
+}
+
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error('Root element #root not found in document. Check index.html.');

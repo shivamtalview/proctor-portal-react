@@ -27,7 +27,7 @@ MAILGUN_DOMAIN=your-mailgun-domain.com
 MAILGUN_API_KEY=your-mailgun-api-key
 
 # Public site URL (for form links)
-PUBLIC_SITE_URL=https://yourdomain.com
+PUBLIC_SITE_URL=https://shivamtalview.github.io/proctor-portal-react
 ```
 
 Or via CLI:
@@ -35,7 +35,7 @@ Or via CLI:
 ```bash
 supabase secrets set MAILGUN_DOMAIN=your-mailgun-domain.com
 supabase secrets set MAILGUN_API_KEY=your-mailgun-api-key
-supabase secrets set PUBLIC_SITE_URL=https://yourdomain.com
+supabase secrets set PUBLIC_SITE_URL=https://shivamtalview.github.io/proctor-portal-react
 ```
 
 ## Step 3: Deploy Edge Functions
