@@ -28,6 +28,9 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          VITE_SUPABASE_URL: https://vukijbppuchsmwoyrbjt.supabase.co
+          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1a2lqYnBwdWNoc213b3lyYmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MzczMDIsImV4cCI6MjA4ODUxMzMwMn0.UUoinsD96wgHhkvBlZ2-p93CFkj-4TiPFBqPjrWahSI
 
       - name: Configure Git
         run: |
