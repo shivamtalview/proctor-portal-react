@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router';
 import { useMemo } from 'react';
 import { useAuthStore } from '@/stores/auth';
 

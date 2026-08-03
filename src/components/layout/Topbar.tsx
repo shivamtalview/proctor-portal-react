@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { useState, useEffect } from 'react';
 
 const PAGE_TITLES: Record<string, string> = {
