@@ -33,7 +33,7 @@ export default function Topbar() {
   }, []);
 
   return (
-    <div className="bg-white border-b border-border px-6 h-14 flex items-center justify-between sticky top-0 z-40 shadow-sm">
+    <div className="bg-surface border-b border-border px-6 h-14 flex items-center justify-between sticky top-0 z-40 shadow-sm">
       <h1 className="text-base font-bold text-text">{title}</h1>
       <div className="flex items-center gap-3">
         <span className="text-[11px] text-text3">

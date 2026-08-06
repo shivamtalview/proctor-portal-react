@@ -9,11 +9,11 @@ export default function MainLayout() {
   useRealtimeSync(queryClient);
 
   return (
-    <div className="flex min-h-screen bg-bg">
+    <div className="flex min-h-screen">
       <Sidebar />
-      <main className="flex-1 ml-60 flex flex-col bg-bg">
+      <main className="flex-1 ml-60 min-w-0 flex flex-col">
         <Topbar />
-        <div className="flex-1 p-6 bg-bg">
+        <div className="flex-1 p-6">
           <Outlet />
         </div>
       </main>
