@@ -3,6 +3,8 @@ import { proctorService } from '@/services/proctor';
 import { useAuthStore } from '@/stores/auth';
 import { supabase } from '@/services/supabase';
 import { getScopedVendor } from '@/utils/access';
+import Card from '@/components/ui/Card';
+import Table from '@/components/ui/Table';
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
@@ -47,6 +49,11 @@ export default function DashboardPage() {
       </div>
     );
   }
+
+  // Vendor breakdown rows, flattened for the Table component
+  const vendorRows = Object.entries(stats?.byVendor || {}).map(
+    ([vendor, data]: [string, any]) => ({ vendor, ...data })
+  );
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -136,70 +143,51 @@ export default function DashboardPage() {
           <h3 className="text-xs font-semibold text-text3 uppercase tracking-wide mb-3 pb-2 border-b border-border">
             Vendor Breakdown
           </h3>
-          <div className="bg-surface border border-border rounded-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-surface2 sticky top-0">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                      Vendor
-                    </th>
-                    <th className="px-4 py-3 text-right text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                      Total
-                    </th>
-                    <th className="px-4 py-3 text-right text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                      In Progress
-                    </th>
-                    <th className="px-4 py-3 text-right text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                      Active
-                    </th>
-                    <th className="px-4 py-3 text-right text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                      BGV Missing
-                    </th>
-                    <th className="px-4 py-3 text-right text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                      BGV Overdue
-                    </th>
-                    <th className="px-4 py-3 text-right text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                      Demo Cert
-                    </th>
-                    <th className="px-4 py-3 text-right text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                      Assess Cert
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(stats?.byVendor || {}).map(([vendor, data]: [string, any]) => (
-                    <tr key={vendor} className="border-b border-border hover:bg-surface2/50">
-                      <td className="px-4 py-3">
-                        {getVendorBadge(vendor)}
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono text-sm text-text">
-                        {data.total}
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono text-sm text-warning">
-                        {data.inProgress}
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono text-sm text-success">
-                        {data.active}
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono text-sm text-warning">
-                        {data.bgvMissing}
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono text-sm text-danger">
-                        {data.bgvOverdue}
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono text-sm text-[#7c3aed]">
-                        {data.demoCert}
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono text-sm text-accent">
-                        {data.assessCert}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <Table
+            data={vendorRows}
+            columns={[
+              {
+                header: 'Vendor',
+                accessor: (row) => getVendorBadge(row.vendor),
+              },
+              {
+                header: 'Total',
+                accessor: (row) => row.total,
+                className: 'text-right font-mono text-sm text-text',
+              },
+              {
+                header: 'In Progress',
+                accessor: (row) => row.inProgress,
+                className: 'text-right font-mono text-sm text-warning',
+              },
+              {
+                header: 'Active',
+                accessor: (row) => row.active,
+                className: 'text-right font-mono text-sm text-success',
+              },
+              {
+                header: 'BGV Missing',
+                accessor: (row) => row.bgvMissing,
+                className: 'text-right font-mono text-sm text-warning',
+              },
+              {
+                header: 'BGV Overdue',
+                accessor: (row) => row.bgvOverdue,
+                className: 'text-right font-mono text-sm text-danger',
+              },
+              {
+                header: 'Demo Cert',
+                accessor: (row) => row.demoCert,
+                className: 'text-right font-mono text-sm text-[#7c3aed]',
+              },
+              {
+                header: 'Assess Cert',
+                accessor: (row) => row.assessCert,
+                className: 'text-right font-mono text-sm text-accent',
+              },
+            ]}
+            emptyMessage="No vendor data available"
+          />
         </div>
       )}
 
@@ -208,51 +196,29 @@ export default function DashboardPage() {
         <h3 className="text-xs font-semibold text-text3 uppercase tracking-wide mb-3">
           Recent Activity
         </h3>
-        <div className="bg-surface border border-border rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-surface2">
-                <tr>
-                  <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                    Name
-                  </th>
-                  <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                    Managed By
-                  </th>
-                  <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                    Status
-                  </th>
-                  <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                    Updated
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentActivity.length > 0 ? (
-                  recentActivity.map((p: any) => (
-                    <tr key={p.id} className="border-b border-border hover:bg-surface2/50">
-                      <td className="px-3.5 py-2.5 text-[13px] text-text">{p.name}</td>
-                      <td className="px-3.5 py-2.5">
-                        {getVendorBadge(p.vendor || p.managed_by)}
-                      </td>
-                      <td className="px-3.5 py-2.5">{getStatusBadge(p.status)}</td>
-                      <td className="px-3.5 py-2.5 text-[12px] text-text3">{formatDate(p.upd)}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className="px-3.5 py-8 text-center">
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="text-4xl">📋</div>
-                        <h3 className="text-text2 font-semibold">No activity yet</h3>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <Table
+          data={recentActivity}
+          columns={[
+            {
+              header: 'Name',
+              accessor: 'name',
+            },
+            {
+              header: 'Managed By',
+              accessor: (row: any) => getVendorBadge(row.vendor || row.managed_by),
+            },
+            {
+              header: 'Status',
+              accessor: (row: any) => getStatusBadge(row.status),
+            },
+            {
+              header: 'Updated',
+              accessor: (row: any) => formatDate(row.upd),
+              className: 'text-[12px] text-text3',
+            },
+          ]}
+          emptyMessage="No activity yet"
+        />
       </div>
     </div>
   );
@@ -268,8 +234,8 @@ interface StatCardProps {
 
 function StatCard({ label, value, subtitle, valueColor = 'text-text', className = '' }: StatCardProps) {
   return (
-    <div
-      className={`bg-surface border border-border rounded-lg p-4 border-l-[3px] ${className}`}
+    <Card
+      className={`p-4 border-l-[3px] ${className}`}
     >
       <div className="text-[11px] font-semibold text-text3 uppercase tracking-wide mb-2">
         {label}
@@ -282,6 +248,6 @@ function StatCard({ label, value, subtitle, valueColor = 'text-text', className 
           {subtitle}
         </div>
       )}
-    </div>
+    </Card>
   );
 }
