@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from './stores/auth';
 import ErrorBoundary from './components/ErrorBoundary';
+import Card from '@/components/ui/Card';
 
 // Pages
 import LoginPage from './pages/LoginPage';
@@ -24,11 +25,11 @@ import OnboardingFormPage from './pages/OnboardingFormPage';
 import MainLayout from './components/layout/MainLayout';
 
 const FormLinksPage = () => (
-  <div className="bg-surface border border-border rounded-lg p-8 text-center">
+  <Card className="p-8 text-center">
     <div className="text-4xl mb-3">🔗</div>
     <h3 className="text-lg font-semibold text-text mb-1">Form Links</h3>
     <p className="text-text3 text-sm">Public form links for proctor onboarding will appear here.</p>
-  </div>
+  </Card>
 );
 
 const queryClient = new QueryClient({

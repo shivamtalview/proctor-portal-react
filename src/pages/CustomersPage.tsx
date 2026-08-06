@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
+import Card from '@/components/ui/Card';
 
 interface Customer {
   id: string;
@@ -159,9 +160,9 @@ export default function CustomersPage() {
       ) : (
         <div className="space-y-3">
           {customers.map((customer) => (
-            <div
+            <Card
               key={customer.id}
-              className="bg-surface border border-border rounded-lg p-4 flex items-center gap-4"
+              className="p-4 flex items-center gap-4"
             >
               {/* Version Badge */}
               <div className="text-center min-w-[56px]">
@@ -227,7 +228,7 @@ export default function CustomersPage() {
                   🗑 Delete
                 </Button>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}

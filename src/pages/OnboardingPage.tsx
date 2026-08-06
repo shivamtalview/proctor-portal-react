@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Modal from '@/components/ui/Modal';
+import Table from '@/components/ui/Table';
 import { logAudit } from '@/services/audit';
 import { getScopedVendor } from '@/utils/access';
 import { useManagedByOptions } from '@/hooks/useManagedByOptions';
@@ -112,6 +113,62 @@ export default function OnboardingPage() {
     URL.revokeObjectURL(a.href);
   };
 
+  const columns = [
+    {
+      header: 'Name',
+      accessor: (row: Proctor) => (
+        <div>
+          <div className="text-[13px] text-text">{row.name}</div>
+          <div className="text-[11px] text-text3">{row.email || ''}</div>
+        </div>
+      ),
+    },
+    {
+      header: 'Managed By',
+      accessor: (row: Proctor) => getVendorBadge(row.vendor!),
+    },
+    {
+      header: 'Type',
+      accessor: (row: Proctor) => getTypeBadge(row.ptype),
+    },
+    {
+      header: 'Submitted',
+      accessor: (row: Proctor) => (
+        <span className="text-[12px] text-text3">{formatDate(row.at)}</span>
+      ),
+    },
+    {
+      header: 'BGV',
+      accessor: (row: Proctor) => getBGVBadge(row.bgv),
+    },
+    {
+      header: 'Demo',
+      accessor: (row: Proctor) => (
+        <EvalCell proctor={row} type="demo" isVendor={isVendor} />
+      ),
+    },
+    {
+      header: 'Assessment',
+      accessor: (row: Proctor) => (
+        <EvalCell proctor={row} type="assessment" isVendor={isVendor} />
+      ),
+    },
+    {
+      header: 'NDA',
+      accessor: (row: Proctor) => getNDABadge(row.nda_status),
+    },
+    {
+      header: 'Docs',
+      accessor: (row: Proctor) => getDocsBadge(row),
+    },
+    {
+      header: 'Actions',
+      accessor: (row: Proctor) => (
+        <ActionsCell proctor={row} isAdmin={isAdmin} onView={() => setSelectedProctor(row)} />
+      ),
+    },
+  ];
+
   return (
     <div>
       {/* Filters */}
@@ -137,72 +194,12 @@ export default function OnboardingPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-surface border border-border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-surface2">
-              <tr>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Name
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Managed By
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Type
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Submitted
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  BGV
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Demo
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Assessment
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  NDA
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Docs
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={10} className="px-3.5 py-8 text-center text-text3">
-                    Loading...
-                  </td>
-                </tr>
-              ) : filteredProctors.length === 0 ? (
-                <tr>
-                  <td colSpan={10} className="px-3.5 py-8 text-center text-text3">
-                    No proctors in progress
-                  </td>
-                </tr>
-              ) : (
-                filteredProctors.map((proctor) => (
-                  <ProctorRow
-                    key={proctor.id}
-                    proctor={proctor}
-                    isAdmin={isAdmin}
-                    isVendor={isVendor}
-                    formatDate={formatDate}
-                    onView={() => setSelectedProctor(proctor)}
-                  />
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <Table
+        data={filteredProctors}
+        columns={columns}
+        isLoading={isLoading}
+        emptyMessage="No proctors in progress"
+      />
 
       {selectedProctor && (
         <ProctorDetailsModal
@@ -216,15 +213,161 @@ export default function OnboardingPage() {
   );
 }
 
-interface ProctorRowProps {
+function getVendorBadge(vendor: string) {
+  const vendorColors: Record<string, string> = {
+    'Sai': 'bg-blue-500/15 text-blue-400',
+    'TSN': 'bg-purple-500/15 text-purple-400',
+    'Avner': 'bg-emerald-400/15 text-emerald-400',
+    'A&M': 'bg-amber-500/15 text-amber-400',
+    'ATS': 'bg-red-400/15 text-red-400',
+    'Awign': 'bg-orange-400/15 text-orange-400',
+  };
+  return (
+    <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${vendorColors[vendor] || 'bg-accent/10 text-accent'}`}>
+      {vendor}
+    </span>
+  );
+}
+
+function getTypeBadge(ptype: string) {
+  return (
+    <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-info/10 text-info">
+      {ptype}
+    </span>
+  );
+}
+
+function getBGVBadge(bgv?: string) {
+  if (!bgv) return <span className="text-[11px] text-text3">—</span>;
+  const colors: Record<string, string> = {
+    'Pending': 'text-warning',
+    'Clear': 'text-success',
+    'Rejected': 'text-danger',
+  };
+  return <span className={`text-[11px] font-bold ${colors[bgv] || 'text-text3'}`}>{bgv}</span>;
+}
+
+function getNDABadge(status?: string) {
+  if (status === 'NDA Signed') {
+    return <span className="text-[11px] font-bold text-success">✅ Signed</span>;
+  }
+  if (status === 'NDA Pending') {
+    return <span className="text-[11px] font-bold text-warning">⏳ Pending</span>;
+  }
+  return <span className="text-[11px] text-text3">—</span>;
+}
+
+function getDocsBadge(proctor: Proctor) {
+  const docs = ['doc_resume', 'doc_passport_photo', 'doc_grad_cert', 'doc_aadhaar_copy', 'doc_pan_copy', 'doc_eye_test'];
+  const filled = docs.filter(d => (proctor as any)[d]).length;
+  const total = docs.length;
+
+  if (!proctor.final_form_status && filled === 0) {
+    return <span className="text-[11px] text-text3">—</span>;
+  }
+  if (filled === total) {
+    return <span className="text-[11px] font-bold text-success">✅ Complete</span>;
+  }
+  if (filled > 0) {
+    return <span className="text-[11px] font-bold text-warning">📄 {filled}/{total}</span>;
+  }
+  if (proctor.final_form_status === 'sent') {
+    return <span className="text-[11px] font-bold text-accent">📨 Sent</span>;
+  }
+  return <span className="text-[11px] text-text3">—</span>;
+}
+
+interface EvalCellProps {
+  proctor: Proctor;
+  type: 'demo' | 'assessment';
+  isVendor: boolean;
+}
+
+function EvalCell({ proctor, type, isVendor }: EvalCellProps) {
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const status = type === 'demo' ? proctor.demo_ready : proctor.assessment_ready;
+
+  // Set eval ready mutation
+  const setReadyMutation = useMutation({
+    mutationFn: async () => {
+      const field = type === 'demo' ? 'demo_ready' : 'assessment_ready';
+
+      const { error } = await supabase
+        .from('proctors')
+        .update({
+          [field]: 'ready',
+          upd: new Date().toISOString(),
+        })
+        .eq('id', proctor.id);
+
+      if (error) throw error;
+    },
+    onSuccess: async () => {
+      await logAudit({
+        action: 'Eval Ready',
+        target: proctor.name,
+        detail: `${type === 'demo' ? 'Demo' : 'Assessment'} marked Ready by ${user?.username || user?.name || 'system'}`,
+        user: user?.username || user?.name || null,
+      });
+      queryClient.invalidateQueries({ queryKey: ['in-progress-proctors'] });
+      alert('Marked as ready');
+    },
+    onError: (error: any) => {
+      alert('Failed: ' + error.message);
+    },
+  });
+
+  if (status === 'pass') {
+    return <span className="text-[11px] font-bold text-success">✅ Pass</span>;
+  }
+  if (status === 'scheduled') {
+    return <span className="text-[11px] font-bold text-accent">📅 Scheduled</span>;
+  }
+  if (status === 'ready') {
+    return <span className="text-[11px] font-bold text-info">✅ Ready</span>;
+  }
+  if (['reattempt', 'noshow', 'reschedule'].includes(status || '')) {
+    const label = status === 'reattempt' ? '🔄 Reattempt' : status === 'noshow' ? '❌ No Show' : '📅 Rescheduled';
+    return (
+      <div className="flex items-center gap-1">
+        <span className="text-[11px] font-bold text-warning">{label}</span>
+        {isVendor && (
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setReadyMutation.mutate()}
+            className="!text-[10px] !px-2 !py-1"
+          >
+            Ready
+          </Button>
+        )}
+      </div>
+    );
+  }
+  // awaiting
+  if (isVendor) {
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setReadyMutation.mutate()}
+        className="!text-[11px] !px-2 !py-1"
+      >
+        Set Ready
+      </Button>
+    );
+  }
+  return <span className="text-[11px] text-text3">Awaiting</span>;
+}
+
+interface ActionsCellProps {
   proctor: Proctor;
   isAdmin: boolean;
-  isVendor: boolean;
-  formatDate: (date: string) => string;
   onView: () => void;
 }
 
-function ProctorRow({ proctor, isAdmin, isVendor, formatDate, onView }: ProctorRowProps) {
+function ActionsCell({ proctor, isAdmin, onView }: ActionsCellProps) {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
 
@@ -283,218 +426,62 @@ function ProctorRow({ proctor, isAdmin, isVendor, formatDate, onView }: ProctorR
     },
   });
 
-  // Set eval ready mutation
-  const setReadyMutation = useMutation({
-    mutationFn: async ({ type }: { type: 'demo' | 'assessment' }) => {
-      const field = type === 'demo' ? 'demo_ready' : 'assessment_ready';
-      
-      const { error } = await supabase
-        .from('proctors')
-        .update({
-          [field]: 'ready',
-          upd: new Date().toISOString(),
-        })
-        .eq('id', proctor.id);
-
-      if (error) throw error;
-    },
-    onSuccess: async (_, vars) => {
-      await logAudit({
-        action: 'Eval Ready',
-        target: proctor.name,
-        detail: `${vars.type === 'demo' ? 'Demo' : 'Assessment'} marked Ready by ${user?.username || user?.name || 'system'}`,
-        user: user?.username || user?.name || null,
-      });
-      queryClient.invalidateQueries({ queryKey: ['in-progress-proctors'] });
-      alert('Marked as ready');
-    },
-    onError: (error: any) => {
-      alert('Failed: ' + error.message);
-    },
-  });
-
-  const getVendorBadge = (vendor: string) => {
-    const vendorColors: Record<string, string> = {
-      'Sai': 'bg-blue-500/15 text-blue-400',
-      'TSN': 'bg-purple-500/15 text-purple-400',
-      'Avner': 'bg-emerald-400/15 text-emerald-400',
-      'A&M': 'bg-amber-500/15 text-amber-400',
-      'ATS': 'bg-red-400/15 text-red-400',
-      'Awign': 'bg-orange-400/15 text-orange-400',
-    };
+  if (!isAdmin) {
     return (
-      <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${vendorColors[vendor] || 'bg-accent/10 text-accent'}`}>
-        {vendor}
-      </span>
+      <Button variant="ghost" size="sm" onClick={onView}>
+        👁 View
+      </Button>
     );
-  };
+  }
 
-  const getTypeBadge = (ptype: string) => (
-    <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-info/10 text-info">
-      {ptype}
-    </span>
-  );
+  const demoPass = proctor.demo_ready === 'pass';
+  const assessPass = proctor.assessment_ready === 'pass';
+  const bothPass = demoPass && assessPass;
+  const ndaSigned = proctor.nda_status === 'NDA Signed';
+  const ndaPending = proctor.nda_status === 'NDA Pending';
 
-  const getBGVBadge = (bgv?: string) => {
-    if (!bgv) return <span className="text-[11px] text-text3">—</span>;
-    const colors: Record<string, string> = {
-      'Pending': 'text-warning',
-      'Clear': 'text-success',
-      'Rejected': 'text-danger',
-    };
-    return <span className={`text-[11px] font-bold ${colors[bgv] || 'text-text3'}`}>{bgv}</span>;
-  };
-
-  const getEvalBadge = (status?: string, type?: 'demo' | 'assessment') => {
-    if (status === 'pass') {
-      return <span className="text-[11px] font-bold text-success">✅ Pass</span>;
-    }
-    if (status === 'scheduled') {
-      return <span className="text-[11px] font-bold text-accent">📅 Scheduled</span>;
-    }
-    if (status === 'ready') {
-      return <span className="text-[11px] font-bold text-info">✅ Ready</span>;
-    }
-    if (['reattempt', 'noshow', 'reschedule'].includes(status || '')) {
-      const label = status === 'reattempt' ? '🔄 Reattempt' : status === 'noshow' ? '❌ No Show' : '📅 Rescheduled';
-      return (
-        <div className="flex items-center gap-1">
-          <span className="text-[11px] font-bold text-warning">{label}</span>
-          {isVendor && type && (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setReadyMutation.mutate({ type })}
-              className="!text-[10px] !px-2 !py-1"
-            >
-              Ready
-            </Button>
-          )}
-        </div>
-      );
-    }
-    // awaiting
-    if (isVendor && type) {
-      return (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setReadyMutation.mutate({ type })}
-          className="!text-[11px] !px-2 !py-1"
-        >
-          Set Ready
-        </Button>
-      );
-    }
-    return <span className="text-[11px] text-text3">Awaiting</span>;
-  };
-
-  const getNDABadge = (status?: string) => {
-    if (status === 'NDA Signed') {
-      return <span className="text-[11px] font-bold text-success">✅ Signed</span>;
-    }
-    if (status === 'NDA Pending') {
-      return <span className="text-[11px] font-bold text-warning">⏳ Pending</span>;
-    }
-    return <span className="text-[11px] text-text3">—</span>;
-  };
-
-  const getDocsBadge = () => {
-    const docs = ['doc_resume', 'doc_passport_photo', 'doc_grad_cert', 'doc_aadhaar_copy', 'doc_pan_copy', 'doc_eye_test'];
-    const filled = docs.filter(d => (proctor as any)[d]).length;
-    const total = docs.length;
-
-    if (!proctor.final_form_status && filled === 0) {
-      return <span className="text-[11px] text-text3">—</span>;
-    }
-    if (filled === total) {
-      return <span className="text-[11px] font-bold text-success">✅ Complete</span>;
-    }
-    if (filled > 0) {
-      return <span className="text-[11px] font-bold text-warning">📄 {filled}/{total}</span>;
-    }
-    if (proctor.final_form_status === 'sent') {
-      return <span className="text-[11px] font-bold text-accent">📨 Sent</span>;
-    }
-    return <span className="text-[11px] text-text3">—</span>;
-  };
-
-  const getActions = () => {
-    if (!isAdmin) {
-      return (
-        <Button variant="ghost" size="sm" onClick={onView}>
-          👁 View
-        </Button>
-      );
-    }
-
-    const demoPass = proctor.demo_ready === 'pass';
-    const assessPass = proctor.assessment_ready === 'pass';
-    const bothPass = demoPass && assessPass;
-    const ndaSigned = proctor.nda_status === 'NDA Signed';
-    const ndaPending = proctor.nda_status === 'NDA Pending';
-
-    const docs = ['doc_resume', 'doc_passport_photo', 'doc_grad_cert', 'doc_aadhaar_copy', 'doc_pan_copy', 'doc_eye_test'];
-    const docsOk = docs.every(d => (proctor as any)[d]);
-    const canVerify = (proctor.status === 'In Progress' || proctor.status === 'Verified') && docsOk && ndaSigned && !proctor.vendor_verified;
-
-      return (
-        <div className="flex gap-1">
-          <Button variant="ghost" size="sm" onClick={onView}>
-          👁 View
-        </Button>
-        
-        {canVerify ? (
-          <Button variant="ghost" size="sm" onClick={() => verifyMutation.mutate()} disabled={verifyMutation.isPending}>
-            ✅ Verify
-          </Button>
-        ) : (docsOk && ndaSigned && proctor.vendor_verified) ? (
-          <span className="text-[11px] text-success font-semibold">✅ Verified</span>
-        ) : (
-          <Button variant="ghost" size="sm" disabled title={!ndaSigned ? 'NDA not signed' : !docsOk ? 'Documents not submitted' : 'Already verified'}>
-            ✅ Verify
-          </Button>
-        )}
-
-        {!bothPass ? (
-          <Button variant="ghost" size="sm" disabled title="Assessment and Demo must both pass first">
-            📨 Trigger NDA
-          </Button>
-        ) : !ndaPending && !ndaSigned ? (
-          <Button variant="primary" size="sm" onClick={() => triggerNDAMutation.mutate()} disabled={triggerNDAMutation.isPending}>
-            📨 Trigger NDA & Docs
-          </Button>
-        ) : ndaPending && !ndaSigned ? (
-          <Button variant="ghost" size="sm" disabled title="Waiting for proctor to sign">
-            ⏳ NDA Pending
-          </Button>
-        ) : ndaSigned && !proctor.pid ? (
-          <Button variant="success" size="sm" onClick={onView}>
-            🎯 Assign ID
-          </Button>
-        ) : proctor.pid ? (
-          <span className="text-[11px] text-success font-semibold">✅ Active</span>
-        ) : null}
-      </div>
-    );
-  };
+  const docs = ['doc_resume', 'doc_passport_photo', 'doc_grad_cert', 'doc_aadhaar_copy', 'doc_pan_copy', 'doc_eye_test'];
+  const docsOk = docs.every(d => (proctor as any)[d]);
+  const canVerify = (proctor.status === 'In Progress' || proctor.status === 'Verified') && docsOk && ndaSigned && !proctor.vendor_verified;
 
   return (
-    <tr className="border-b border-border hover:bg-surface2/50">
-      <td className="px-3.5 py-2.5">
-        <div className="text-[13px] text-text">{proctor.name}</div>
-        <div className="text-[11px] text-text3">{proctor.email || ''}</div>
-      </td>
-      <td className="px-3.5 py-2.5">{getVendorBadge(proctor.vendor!)}</td>
-      <td className="px-3.5 py-2.5">{getTypeBadge(proctor.ptype)}</td>
-      <td className="px-3.5 py-2.5 text-[12px] text-text3">{formatDate(proctor.at)}</td>
-      <td className="px-3.5 py-2.5">{getBGVBadge(proctor.bgv)}</td>
-      <td className="px-3.5 py-2.5">{getEvalBadge(proctor.demo_ready, 'demo')}</td>
-      <td className="px-3.5 py-2.5">{getEvalBadge(proctor.assessment_ready, 'assessment')}</td>
-      <td className="px-3.5 py-2.5">{getNDABadge(proctor.nda_status)}</td>
-      <td className="px-3.5 py-2.5">{getDocsBadge()}</td>
-      <td className="px-3.5 py-2.5">{getActions()}</td>
-    </tr>
+    <div className="flex gap-1">
+      <Button variant="ghost" size="sm" onClick={onView}>
+        👁 View
+      </Button>
+
+      {canVerify ? (
+        <Button variant="ghost" size="sm" onClick={() => verifyMutation.mutate()} disabled={verifyMutation.isPending}>
+          ✅ Verify
+        </Button>
+      ) : (docsOk && ndaSigned && proctor.vendor_verified) ? (
+        <span className="text-[11px] text-success font-semibold">✅ Verified</span>
+      ) : (
+        <Button variant="ghost" size="sm" disabled title={!ndaSigned ? 'NDA not signed' : !docsOk ? 'Documents not submitted' : 'Already verified'}>
+          ✅ Verify
+        </Button>
+      )}
+
+      {!bothPass ? (
+        <Button variant="ghost" size="sm" disabled title="Assessment and Demo must both pass first">
+          📨 Trigger NDA
+        </Button>
+      ) : !ndaPending && !ndaSigned ? (
+        <Button variant="primary" size="sm" onClick={() => triggerNDAMutation.mutate()} disabled={triggerNDAMutation.isPending}>
+          📨 Trigger NDA & Docs
+        </Button>
+      ) : ndaPending && !ndaSigned ? (
+        <Button variant="ghost" size="sm" disabled title="Waiting for proctor to sign">
+          ⏳ NDA Pending
+        </Button>
+      ) : ndaSigned && !proctor.pid ? (
+        <Button variant="success" size="sm" onClick={onView}>
+          🎯 Assign ID
+        </Button>
+      ) : proctor.pid ? (
+        <span className="text-[11px] text-success font-semibold">✅ Active</span>
+      ) : null}
+    </div>
   );
 }
 

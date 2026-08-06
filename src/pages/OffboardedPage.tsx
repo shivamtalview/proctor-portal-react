@@ -5,6 +5,9 @@ import { useAuthStore } from '@/stores/auth';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
+import Card from '@/components/ui/Card';
+import Table from '@/components/ui/Table';
+import Tabs from '@/components/ui/Tabs';
 import { getScopedVendor } from '@/utils/access';
 import { useManagedByOptions } from '@/hooks/useManagedByOptions';
 import type { Proctor } from '@/types';
@@ -251,33 +254,68 @@ export default function OffboardedPage() {
     URL.revokeObjectURL(a.href);
   };
 
+  const offboardedColumns = [
+    {
+      header: 'ID',
+      accessor: (row: Proctor) => row.pid || '—',
+      className: 'font-mono text-[12px] text-info',
+    },
+    {
+      header: 'Name',
+      accessor: (row: Proctor) => row.name,
+      className: 'text-text font-semibold',
+    },
+    {
+      header: 'Managed By',
+      accessor: (row: Proctor) => getVendorBadge(row.vendor!),
+    },
+    {
+      header: 'Offboarded',
+      accessor: (row: Proctor) => formatDate(row.oat!),
+      className: 'text-[12px] text-text3',
+    },
+    {
+      header: 'Reason',
+      accessor: (row: Proctor) => row.off_reason || '—',
+      className: 'text-[12px] text-text2',
+    },
+    {
+      header: 'Actions',
+      accessor: (row: Proctor) => (
+        <div className="flex gap-1">
+          <Button variant="ghost" size="sm">
+            👁 View
+          </Button>
+          {isAdmin && (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                if (confirm(`Re-onboard ${row.name}? They will start fresh in In Progress.`)) {
+                  reOnboardMutation.mutate(row.id);
+                }
+              }}
+              disabled={reOnboardMutation.isPending}
+            >
+              ↩ Re-onboard
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div>
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-border">
-        <button
-          className={`px-4 py-2 text-sm font-medium transition-colors ${
-            activeTab === 0
-              ? 'text-accent border-b-2 border-accent'
-              : 'text-text3 hover:text-text'
-          }`}
-          onClick={() => setActiveTab(0)}
-        >
-          Offboarded
-        </button>
-        {isAdmin && (
-          <button
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === 1
-                ? 'text-accent border-b-2 border-accent'
-                : 'text-text3 hover:text-text'
-            }`}
-            onClick={() => setActiveTab(1)}
-          >
-            Re-onboard History
-          </button>
-        )}
-      </div>
+      <Tabs
+        tabs={[
+          { id: 0, label: 'Offboarded' },
+          ...(isAdmin ? [{ id: 1, label: 'Re-onboard History' }] : []),
+        ]}
+        activeTab={activeTab}
+        onChange={(id) => setActiveTab(id as number)}
+      />
 
       {/* Tab 0: Offboarded */}
       {activeTab === 0 && (
@@ -305,88 +343,12 @@ export default function OffboardedPage() {
           </div>
 
           {/* Table */}
-          <div className="bg-surface border border-border rounded-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-surface2">
-                  <tr>
-                    <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                      ID
-                    </th>
-                    <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                      Name
-                    </th>
-                    <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                      Managed By
-                    </th>
-                    <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                      Offboarded
-                    </th>
-                    <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                      Reason
-                    </th>
-                    <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {isLoadingOffboarded ? (
-                    <tr>
-                      <td colSpan={6} className="px-3.5 py-8 text-center text-text3">
-                        Loading...
-                      </td>
-                    </tr>
-                  ) : filteredOffboarded.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="px-3.5 py-8 text-center text-text3">
-                        No offboarded proctors
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredOffboarded.map((proctor) => (
-                      <tr key={proctor.id} className="border-b border-border hover:bg-surface2/50">
-                        <td className="px-3.5 py-2.5 font-mono text-[12px] text-info">
-                          {proctor.pid || '—'}
-                        </td>
-                        <td className="px-3.5 py-2.5 text-[13px] text-text font-semibold">
-                          {proctor.name}
-                        </td>
-                        <td className="px-3.5 py-2.5">{getVendorBadge(proctor.vendor!)}</td>
-                        <td className="px-3.5 py-2.5 text-[12px] text-text3">
-                          {formatDate(proctor.oat!)}
-                        </td>
-                        <td className="px-3.5 py-2.5 text-[12px] text-text2">
-                          {proctor.off_reason || '—'}
-                        </td>
-                        <td className="px-3.5 py-2.5">
-                          <div className="flex gap-1">
-                            <Button variant="ghost" size="sm">
-                              👁 View
-                            </Button>
-                            {isAdmin && (
-                              <Button
-                                variant="primary"
-                                size="sm"
-                                onClick={() => {
-                                  if (confirm(`Re-onboard ${proctor.name}? They will start fresh in In Progress.`)) {
-                                    reOnboardMutation.mutate(proctor.id);
-                                  }
-                                }}
-                                disabled={reOnboardMutation.isPending}
-                              >
-                                ↩ Re-onboard
-                              </Button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <Table
+            data={filteredOffboarded}
+            columns={offboardedColumns}
+            isLoading={isLoadingOffboarded}
+            emptyMessage="No offboarded proctors"
+          />
         </div>
       )}
 
@@ -417,24 +379,24 @@ export default function OffboardedPage() {
 
           {/* History Timeline */}
           {isLoadingHistory ? (
-            <div className="bg-surface border border-border rounded-lg p-8 text-center text-text3">
+            <Card className="p-8 text-center text-text3">
               Loading history...
-            </div>
+            </Card>
           ) : historyGroups.length === 0 ? (
-            <div className="bg-surface border border-border rounded-lg p-12 text-center">
+            <Card className="p-12 text-center">
               <div className="text-5xl mb-4">🗂️</div>
               <h3 className="text-lg font-semibold text-text mb-2">No re-onboard history</h3>
               <p className="text-text3 text-sm">
                 Proctors who have been offboarded and re-onboarded will appear here.
               </p>
-            </div>
+            </Card>
           ) : (
             <div className="space-y-6">
               {historyGroups.map((group, idx) => {
                 const person = group[0];
                 
                 return (
-                  <div key={idx} className="bg-surface border border-border rounded-lg p-5">
+                  <Card key={idx} className="p-5">
                     {/* Header */}
                     <div className="flex items-start justify-between mb-4 pb-4 border-b border-border">
                       <div>
@@ -487,7 +449,7 @@ export default function OffboardedPage() {
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </Card>
                 );
               })}
             </div>

@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/services/supabase';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
+import Card from '@/components/ui/Card';
+import Table from '@/components/ui/Table';
 
 interface AuditLog {
   id: string;
@@ -104,10 +106,45 @@ export default function AuditLogPage() {
     });
   };
 
+  const columns = [
+    {
+      header: 'Timestamp',
+      accessor: (log: AuditLog) => (
+        <span className="font-mono text-[11px] text-text3">
+          {formatDateTime(log.ts)}
+        </span>
+      ),
+    },
+    {
+      header: 'User',
+      accessor: (log: AuditLog) => (
+        <span className="font-semibold text-[13px] text-text">{log.usr}</span>
+      ),
+    },
+    {
+      header: 'Action',
+      accessor: (log: AuditLog) => (
+        <span className="text-[13px] text-text">
+          {ACTION_ICONS[log.action] || '•'} {log.action}
+        </span>
+      ),
+    },
+    {
+      header: 'Target',
+      accessor: (log: AuditLog) => <span className="text-text2">{log.target}</span>,
+    },
+    {
+      header: 'Details',
+      accessor: (log: AuditLog) => (
+        <span className="text-[12px] text-text3">{log.detail}</span>
+      ),
+    },
+  ];
+
   return (
     <div>
       {/* Filters */}
-      <div className="bg-surface border border-border rounded-lg overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="flex gap-2 p-4 items-center flex-wrap border-b border-border">
           <Input
             placeholder="🔍 Search..."
@@ -130,68 +167,14 @@ export default function AuditLogPage() {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-surface2">
-              <tr>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Timestamp
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  User
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Action
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Target
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Details
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={5} className="px-3.5 py-8 text-center text-text3">
-                    Loading...
-                  </td>
-                </tr>
-              ) : filteredLogs.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-3.5 py-16">
-                    <div className="flex flex-col items-center justify-center">
-                      <div className="text-4xl mb-2">🔍</div>
-                      <h3 className="text-base font-semibold text-text">No entries yet</h3>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                filteredLogs.map((log) => (
-                  <tr key={log.id} className="border-b border-border hover:bg-surface2/50">
-                    <td className="px-3.5 py-2.5 font-mono text-[11px] text-text3">
-                      {formatDateTime(log.ts)}
-                    </td>
-                    <td className="px-3.5 py-2.5 font-semibold text-[13px] text-text">
-                      {log.usr}
-                    </td>
-                    <td className="px-3.5 py-2.5 text-[13px] text-text">
-                      {ACTION_ICONS[log.action] || '•'} {log.action}
-                    </td>
-                    <td className="px-3.5 py-2.5 text-[13px] text-text2">
-                      {log.target}
-                    </td>
-                    <td className="px-3.5 py-2.5 text-[12px] text-text3">
-                      {log.detail}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+        <Table
+          data={filteredLogs}
+          columns={columns}
+          isLoading={isLoading}
+          emptyMessage="No entries yet"
+          wrapped={false}
+        />
+      </Card>
     </div>
   );
 }

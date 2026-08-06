@@ -6,6 +6,9 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
+import Card from '@/components/ui/Card';
+import Table from '@/components/ui/Table';
+import Tabs from '@/components/ui/Tabs';
 import { logAudit } from '@/services/audit';
 import { PROCTOR_TYPES } from '@/utils/constants';
 import { useManagedByOptions } from '@/hooks/useManagedByOptions';
@@ -30,38 +33,15 @@ export default function EvaluationsPage() {
   return (
     <div>
       {/* Main Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-border">
-        <button
-          className={`px-4 py-2 text-sm font-medium transition-colors ${
-            activeTab === 0
-              ? 'text-accent border-b-2 border-accent'
-              : 'text-text3 hover:text-text'
-          }`}
-          onClick={() => setActiveTab(0)}
-        >
-          🎭 Demo
-        </button>
-        <button
-          className={`px-4 py-2 text-sm font-medium transition-colors ${
-            activeTab === 1
-              ? 'text-accent border-b-2 border-accent'
-              : 'text-text3 hover:text-text'
-          }`}
-          onClick={() => setActiveTab(1)}
-        >
-          📝 Assessment
-        </button>
-        <button
-          className={`px-4 py-2 text-sm font-medium transition-colors ${
-            activeTab === 2
-              ? 'text-accent border-b-2 border-accent'
-              : 'text-text3 hover:text-text'
-          }`}
-          onClick={() => setActiveTab(2)}
-        >
-          📊 Results
-        </button>
-      </div>
+      <Tabs
+        tabs={[
+          { id: 0, label: '🎭 Demo' },
+          { id: 1, label: '📝 Assessment' },
+          { id: 2, label: '📊 Results' },
+        ]}
+        activeTab={activeTab}
+        onChange={(id) => setActiveTab(id as number)}
+      />
 
       {/* Tab Content */}
       {activeTab === 0 && <DemoTab />}
@@ -330,74 +310,54 @@ function DemoTab() {
       </div>
 
       {/* Table */}
-      <div className="bg-surface border border-border rounded-lg overflow-hidden mb-4">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-surface2">
-              <tr>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border w-8"></th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Name
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Managed By
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Type
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Demo Status
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Attempts
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="px-3.5 py-8 text-center text-text3">
-                    Loading...
-                  </td>
-                </tr>
-              ) : filteredProctors.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-3.5 py-8 text-center text-text3">
-                    No proctors ready for demo
-                  </td>
-                </tr>
-              ) : (
-                filteredProctors.map((proctor) => (
-                  <tr key={proctor.id} className="border-b border-border hover:bg-surface2/50">
-                    <td className="px-3.5 py-2.5">
-                      <input
-                        type="checkbox"
-                        checked={selectedProctors.has(proctor.id)}
-                        onChange={() => toggleProctor(proctor.id)}
-                        className="accent-accent"
-                      />
-                    </td>
-                    <td className="px-3.5 py-2.5 text-[13px] text-text font-semibold">
-                      {proctor.name}
-                    </td>
-                    <td className="px-3.5 py-2.5">{getVendorBadge(proctor.vendor!)}</td>
-                    <td className="px-3.5 py-2.5">
-                      <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-info/10 text-info">
-                        {proctor.ptype}
-                      </span>
-                    </td>
-                    <td className="px-3.5 py-2.5">
-                      <span className="text-[11px] font-bold text-info">Ready</span>
-                    </td>
-                    <td className="px-3.5 py-2.5 text-[12px] text-text3">
-                      {proctor.demo_ready_attempt || 0}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+      <div className="mb-4">
+        <Table
+          data={filteredProctors}
+          isLoading={isLoading}
+          emptyMessage="No proctors ready for demo"
+          columns={[
+            {
+              header: '',
+              accessor: (proctor) => (
+                <input
+                  type="checkbox"
+                  checked={selectedProctors.has(proctor.id)}
+                  onChange={() => toggleProctor(proctor.id)}
+                  className="accent-accent"
+                />
+              ),
+              className: 'w-8',
+            },
+            {
+              header: 'Name',
+              accessor: (proctor) => (
+                <span className="text-text font-semibold">{proctor.name}</span>
+              ),
+            },
+            {
+              header: 'Managed By',
+              accessor: (proctor) => getVendorBadge(proctor.vendor!),
+            },
+            {
+              header: 'Type',
+              accessor: (proctor) => (
+                <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-info/10 text-info">
+                  {proctor.ptype}
+                </span>
+              ),
+            },
+            {
+              header: 'Demo Status',
+              accessor: () => <span className="text-[11px] font-bold text-info">Ready</span>,
+            },
+            {
+              header: 'Attempts',
+              accessor: (proctor) => (
+                <span className="text-[12px] text-text3">{proctor.demo_ready_attempt || 0}</span>
+              ),
+            },
+          ]}
+        />
       </div>
 
       {/* Assignment Panel - shown when proctors selected */}
@@ -704,75 +664,55 @@ function IndividualAssessment() {
       </div>
 
       {/* Table */}
-      <div className="bg-surface border border-border rounded-lg overflow-hidden mb-4">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-surface2">
-              <tr>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border w-8"></th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Name
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Managed By
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Type
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Assessment Status
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Attempts
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="px-3.5 py-8 text-center text-text3">
-                    Loading...
-                  </td>
-                </tr>
-              ) : filteredProctors.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-3.5 py-8 text-center text-text3">
-                    No proctors ready for assessment
-                  </td>
-                </tr>
-              ) : (
-                filteredProctors.map((proctor) => (
-                  <tr key={proctor.id} className="border-b border-border hover:bg-surface2/50">
-                    <td className="px-3.5 py-2.5">
-                      <input
-                        type="radio"
-                        name="assessProctor"
-                        checked={selectedProctor === proctor.id}
-                        onChange={() => setSelectedProctor(proctor.id)}
-                        className="accent-accent"
-                      />
-                    </td>
-                    <td className="px-3.5 py-2.5 text-[13px] text-text font-semibold">
-                      {proctor.name}
-                    </td>
-                    <td className="px-3.5 py-2.5">{getVendorBadge(proctor.vendor!)}</td>
-                    <td className="px-3.5 py-2.5">
-                      <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-info/10 text-info">
-                        {proctor.ptype}
-                      </span>
-                    </td>
-                    <td className="px-3.5 py-2.5">
-                      <span className="text-[11px] font-bold text-info">Ready</span>
-                    </td>
-                    <td className="px-3.5 py-2.5 text-[12px] text-text3">
-                      {proctor.assessment_ready_attempt || 0}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+      <div className="mb-4">
+        <Table
+          data={filteredProctors}
+          isLoading={isLoading}
+          emptyMessage="No proctors ready for assessment"
+          columns={[
+            {
+              header: '',
+              accessor: (proctor) => (
+                <input
+                  type="radio"
+                  name="assessProctor"
+                  checked={selectedProctor === proctor.id}
+                  onChange={() => setSelectedProctor(proctor.id)}
+                  className="accent-accent"
+                />
+              ),
+              className: 'w-8',
+            },
+            {
+              header: 'Name',
+              accessor: (proctor) => (
+                <span className="text-text font-semibold">{proctor.name}</span>
+              ),
+            },
+            {
+              header: 'Managed By',
+              accessor: (proctor) => getVendorBadge(proctor.vendor!),
+            },
+            {
+              header: 'Type',
+              accessor: (proctor) => (
+                <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-info/10 text-info">
+                  {proctor.ptype}
+                </span>
+              ),
+            },
+            {
+              header: 'Assessment Status',
+              accessor: () => <span className="text-[11px] font-bold text-info">Ready</span>,
+            },
+            {
+              header: 'Attempts',
+              accessor: (proctor) => (
+                <span className="text-[12px] text-text3">{proctor.assessment_ready_attempt || 0}</span>
+              ),
+            },
+          ]}
+        />
       </div>
 
       {/* Assignment Panel */}
@@ -978,7 +918,7 @@ function BulkAssessment({ bulkAssessConfig, setBulkAssessConfig }: {
   };
 
   return (
-    <div className="bg-surface border border-border rounded-lg p-6 max-w-3xl">
+    <Card className="p-6 max-w-3xl">
       <h3 className="text-sm font-semibold text-text uppercase tracking-wide mb-2">
         Step 1 — Configure Session
       </h3>
@@ -1049,7 +989,7 @@ function BulkAssessment({ bulkAssessConfig, setBulkAssessConfig }: {
           onChange={uploadTemplate}
         />
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -1248,107 +1188,90 @@ function ResultsTable({ type }: { type: 'demo' | 'assessment' }) {
       </div>
 
       {/* Table */}
-      <div className="bg-surface border border-border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-surface2">
-              <tr>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Proctor
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Panel
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Scheduled
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Score
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Certified Date
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Attempt
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Result
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Comment
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={9} className="px-3.5 py-8 text-center text-text3">
-                    Loading...
-                  </td>
-                </tr>
-              ) : filteredEvaluations.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className="px-3.5 py-8 text-center text-text3">
-                    No {type} results recorded yet
-                  </td>
-                </tr>
+      <Table
+        data={filteredEvaluations}
+        isLoading={isLoading}
+        emptyMessage={`No ${type} results recorded yet`}
+        columns={[
+          {
+            header: 'Proctor',
+            accessor: (evaluation: any) => (
+              <div>
+                <div className="text-[13px] text-text font-semibold">{evaluation.proctor_name}</div>
+                <div className="text-[11px] text-text3">{evaluation.proctor_vendor}</div>
+              </div>
+            ),
+          },
+          {
+            header: 'Panel',
+            accessor: (evaluation: any) => (
+              <span className="text-[12px] text-text2">{evaluation.panel_user || '—'}</span>
+            ),
+          },
+          {
+            header: 'Scheduled',
+            accessor: (evaluation: any) => (
+              <span className="text-[12px] text-text3">
+                {formatDateTime(evaluation.scheduled_date, evaluation.scheduled_time)}
+              </span>
+            ),
+          },
+          {
+            header: 'Score',
+            accessor: (evaluation: any) => (
+              <span className="font-mono text-[12px] text-text2">
+                {evaluation.score_obtained != null
+                  ? `${evaluation.score_obtained}${evaluation.score_out_of ? '/' + evaluation.score_out_of : ''}`
+                  : '—'}
+              </span>
+            ),
+          },
+          {
+            header: 'Certified Date',
+            accessor: (evaluation: any) => (
+              <span className="text-[12px] text-success">
+                {evaluation.result === 'Pass'
+                  ? formatDateTime(evaluation.certified_date || evaluation.scheduled_date)
+                  : '—'}
+              </span>
+            ),
+          },
+          {
+            header: 'Attempt',
+            accessor: (evaluation: any) => (
+              <span className="px-2 py-0.5 rounded bg-accent/10 text-accent text-[10px] font-bold">
+                #{evaluation.attempt_number || 1}
+              </span>
+            ),
+          },
+          {
+            header: 'Result',
+            accessor: (evaluation: any) => getResultBadge(evaluation.result, evaluation.overridden_by),
+          },
+          {
+            header: 'Comment',
+            accessor: (evaluation: any) => (
+              <span className="text-[12px] text-text2">{evaluation.comment || '—'}</span>
+            ),
+            className: 'max-w-xs truncate',
+          },
+          {
+            header: 'Actions',
+            accessor: (evaluation: any) =>
+              isAdmin ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleOverride(evaluation)}
+                >
+                  🔄 Override
+                </Button>
               ) : (
-                filteredEvaluations.map((evaluation: any) => (
-                  <tr key={evaluation.id} className="border-b border-border hover:bg-surface2/50">
-                    <td className="px-3.5 py-2.5">
-                      <div className="text-[13px] text-text font-semibold">{evaluation.proctor_name}</div>
-                      <div className="text-[11px] text-text3">{evaluation.proctor_vendor}</div>
-                    </td>
-                    <td className="px-3.5 py-2.5 text-[12px] text-text2">
-                      {evaluation.panel_user || '—'}
-                    </td>
-                    <td className="px-3.5 py-2.5 text-[12px] text-text3">
-                      {formatDateTime(evaluation.scheduled_date, evaluation.scheduled_time)}
-                    </td>
-                    <td className="px-3.5 py-2.5 font-mono text-[12px] text-text2">
-                      {evaluation.score_obtained != null 
-                        ? `${evaluation.score_obtained}${evaluation.score_out_of ? '/' + evaluation.score_out_of : ''}`
-                        : '—'}
-                    </td>
-                    <td className="px-3.5 py-2.5 text-[12px] text-success">
-                      {evaluation.result === 'Pass' 
-                        ? formatDateTime(evaluation.certified_date || evaluation.scheduled_date)
-                        : '—'}
-                    </td>
-                    <td className="px-3.5 py-2.5">
-                      <span className="px-2 py-0.5 rounded bg-accent/10 text-accent text-[10px] font-bold">
-                        #{evaluation.attempt_number || 1}
-                      </span>
-                    </td>
-                    <td className="px-3.5 py-2.5">
-                      {getResultBadge(evaluation.result, evaluation.overridden_by)}
-                    </td>
-                    <td className="px-3.5 py-2.5 text-[12px] text-text2 max-w-xs truncate">
-                      {evaluation.comment || '—'}
-                    </td>
-                    <td className="px-3.5 py-2.5">
-                      {isAdmin ? (
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleOverride(evaluation)}
-                        >
-                          🔄 Override
-                        </Button>
-                      ) : (
-                        <span className="text-text3 text-[11px]">Recorded</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                <span className="text-text3 text-[11px]">Recorded</span>
+              ),
+          },
+        ]}
+      />
 
       {/* Override Modal */}
       {overrideEvaluation && (

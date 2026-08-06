@@ -6,6 +6,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
+import Card from '@/components/ui/Card';
 import { proctorService } from '@/services/proctor';
 import { logAudit } from '@/services/audit';
 import { getScopedVendor } from '@/utils/access';
@@ -230,26 +231,26 @@ export default function IncompletePage() {
 
       {/* Cards List */}
       {isLoading ? (
-        <div className="bg-surface border border-border rounded-lg p-12 text-center text-text3">
+        <Card className="p-12 text-center text-text3">
           Loading...
-        </div>
+        </Card>
       ) : sortedProctors.length === 0 ? (
-        <div className="bg-surface border border-border rounded-lg p-12 text-center">
+        <Card className="p-12 text-center">
           <div className="text-5xl mb-4">✅</div>
           <h3 className="text-lg font-semibold text-text mb-2">All complete!</h3>
           <p className="text-text3 text-sm">
             No proctors with missing BGV documents.
           </p>
-        </div>
+        </Card>
       ) : (
         <div className="space-y-3">
           {sortedProctors.map((proctor) => {
             const dueInfo = getBgvDueInfo(proctor);
             
             return (
-              <div
+              <Card
                 key={proctor.id}
-                className="bg-surface border border-border rounded-lg p-4 flex items-start gap-4 hover:border-accent/30 transition-colors"
+                className="p-4 flex items-start gap-4 hover:border-accent/30 transition-colors"
               >
                 <div className="flex-1">
                   {/* Name and ID */}
@@ -289,7 +290,7 @@ export default function IncompletePage() {
                     <span className="text-xs text-text3">Offboarded</span>
                   )}
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>
