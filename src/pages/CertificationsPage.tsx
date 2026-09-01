@@ -5,6 +5,9 @@ import { useAuthStore } from '@/stores/auth';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import Table from '@/components/ui/Table';
+import Tabs from '@/components/ui/Tabs';
 import type { Proctor } from '@/types';
 
 interface Customer {
@@ -27,34 +30,29 @@ interface Certification {
   certified_by: string;
 }
 
+interface RegistryRow {
+  pid: string;
+  name: string;
+  vendor: string;
+  ptype: string;
+  certifications: Certification[];
+  customerNames: string;
+}
+
 export default function CertificationsPage() {
   const [activeTab, setActiveTab] = useState(0);
 
   return (
     <div>
       {/* Main Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-border">
-        <button
-          className={`px-4 py-2 text-sm font-medium transition-colors ${
-            activeTab === 0
-              ? 'text-accent border-b-2 border-accent'
-              : 'text-text3 hover:text-text'
-          }`}
-          onClick={() => setActiveTab(0)}
-        >
-          🎓 Certify
-        </button>
-        <button
-          className={`px-4 py-2 text-sm font-medium transition-colors ${
-            activeTab === 1
-              ? 'text-accent border-b-2 border-accent'
-              : 'text-text3 hover:text-text'
-          }`}
-          onClick={() => setActiveTab(1)}
-        >
-          📋 Registry
-        </button>
-      </div>
+      <Tabs
+        tabs={[
+          { id: 0, label: '🎓 Certify' },
+          { id: 1, label: '📋 Registry' },
+        ]}
+        activeTab={activeTab}
+        onChange={(id) => setActiveTab(id as number)}
+      />
 
       {/* Tab Content */}
       {activeTab === 0 && <CertifyTab />}
@@ -228,7 +226,7 @@ function IndividualCertify({ customer }: { customer: Customer }) {
   const certifiedPIDs = new Set(existingCerts.map(c => c.proctor_id));
 
   return (
-    <div className="bg-surface border border-border rounded-lg p-5 max-w-[560px]">
+    <Card className="p-5 max-w-[560px]">
       {/* Search */}
       <div className="mb-3">
         <label className="block text-xs font-semibold text-text mb-1">
@@ -292,7 +290,7 @@ function IndividualCertify({ customer }: { customer: Customer }) {
       >
         ✅ Certify Proctor
       </Button>
-    </div>
+    </Card>
   );
 }
 
@@ -428,7 +426,7 @@ function BulkCertify({ customer }: { customer: Customer }) {
   };
 
   return (
-    <div className="bg-surface border border-border rounded-lg p-5 max-w-[600px]">
+    <Card className="p-5 max-w-[600px]">
       <p className="text-text2 text-xs mb-3">
         Upload a CSV with one column: <code className="bg-surface2 px-1.5 py-0.5 rounded text-[10px]">proctor_id</code> — one proctor per row.
       </p>
@@ -503,7 +501,7 @@ function BulkCertify({ customer }: { customer: Customer }) {
           </Button>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -557,7 +555,7 @@ function RegistryTab() {
   const isLoading = certsLoading || proctorsLoading || customersLoading;
 
   // Build registry: group certifications by proctor
-  const registry: any[] = [];
+  const registry: RegistryRow[] = [];
   const proctorMap = new Map(proctors.map(p => [p.pid, p]));
   const customerMap = new Map(customers.map(c => [c.id, c]));
 
@@ -672,68 +670,43 @@ function RegistryTab() {
       </div>
 
       {/* Table */}
-      <div className="bg-surface border border-border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-surface2">
-              <tr>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Proctor ID
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Name
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Type
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Managed By
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Certified Customers
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={5} className="px-3.5 py-8 text-center text-text3">
-                    Loading...
-                  </td>
-                </tr>
-              ) : filteredRegistry.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-3.5 py-8 text-center text-text3">
-                    No certified proctors found
-                  </td>
-                </tr>
-              ) : (
-                filteredRegistry.map((row) => (
-                  <tr key={row.pid} className="border-b border-border hover:bg-surface2/50">
-                    <td className="px-3.5 py-2.5 font-mono text-[11px] text-text3">
-                      {row.pid}
-                    </td>
-                    <td className="px-3.5 py-2.5 text-[13px] text-text font-semibold">
-                      {row.name}
-                    </td>
-                    <td className="px-3.5 py-2.5">
-                      <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-info/10 text-info">
-                        {row.ptype}
-                      </span>
-                    </td>
-                    <td className="px-3.5 py-2.5 text-[12px] text-text2">
-                      {row.vendor}
-                    </td>
-                    <td className="px-3.5 py-2.5 text-[12px] text-text2">
-                      {row.customerNames}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <Table
+        data={filteredRegistry}
+        columns={registryColumns}
+        isLoading={isLoading}
+        emptyMessage="No certified proctors found"
+      />
     </div>
   );
 }
+
+const registryColumns = [
+  {
+    header: 'Proctor ID',
+    accessor: (row: RegistryRow) => row.pid,
+    className: 'font-mono text-[11px] text-text3',
+  },
+  {
+    header: 'Name',
+    accessor: (row: RegistryRow) => row.name,
+    className: 'text-[13px] text-text font-semibold',
+  },
+  {
+    header: 'Type',
+    accessor: (row: RegistryRow) => (
+      <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-info/10 text-info">
+        {row.ptype}
+      </span>
+    ),
+  },
+  {
+    header: 'Managed By',
+    accessor: (row: RegistryRow) => row.vendor,
+    className: 'text-[12px] text-text2',
+  },
+  {
+    header: 'Certified Customers',
+    accessor: (row: RegistryRow) => row.customerNames,
+    className: 'text-[12px] text-text2',
+  },
+];

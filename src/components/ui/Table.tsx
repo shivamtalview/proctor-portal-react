@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import Card from './Card';
 
 interface Column<T> {
   header: string;
@@ -11,6 +12,7 @@ interface TableProps<T> {
   columns: Column<T>[];
   isLoading?: boolean;
   emptyMessage?: string;
+  wrapped?: boolean;
 }
 
 export default function Table<T extends Record<string, any>>({
@@ -18,6 +20,7 @@ export default function Table<T extends Record<string, any>>({
   columns,
   isLoading = false,
   emptyMessage = 'No data available',
+  wrapped = true,
 }: TableProps<T>) {
   const getCellValue = (row: T, column: Column<T>): ReactNode => {
     if (typeof column.accessor === 'function') {
@@ -26,21 +29,24 @@ export default function Table<T extends Record<string, any>>({
     return row[column.accessor];
   };
 
+  const Wrapper = wrapped ? Card : 'div';
+  const wrapperProps = wrapped ? { className: 'overflow-hidden' } : {};
+
   if (isLoading) {
     return (
-      <div className="bg-surface border border-border rounded-lg overflow-hidden">
+      <Wrapper {...wrapperProps}>
         <div className="flex items-center justify-center py-16">
           <div className="flex flex-col items-center gap-3">
             <div className="w-8 h-8 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
             <p className="text-text2 text-sm">Loading...</p>
           </div>
         </div>
-      </div>
+      </Wrapper>
     );
   }
 
   return (
-    <div className="bg-surface border border-border rounded-lg overflow-hidden">
+    <Wrapper {...wrapperProps}>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead className="bg-surface2">
@@ -97,6 +103,6 @@ export default function Table<T extends Record<string, any>>({
           </tbody>
         </table>
       </div>
-    </div>
+    </Wrapper>
   );
 }

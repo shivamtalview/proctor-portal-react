@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/services/supabase';
 import { proctorService } from '@/services/proctor';
 import Table from '@/components/ui/Table';
+import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
@@ -249,7 +250,7 @@ export default function ProctorsPage() {
   return (
     <div>
       {/* Filters */}
-      <div className="bg-surface border border-border rounded-lg p-4 mb-6">
+      <Card className="p-4 mb-6">
         <div className="flex flex-wrap gap-3 items-end">
           <div className="flex-1 min-w-[200px]">
             <Input
@@ -297,7 +298,7 @@ export default function ProctorsPage() {
             </Button>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Table */}
       <Table

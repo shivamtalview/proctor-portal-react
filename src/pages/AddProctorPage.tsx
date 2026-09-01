@@ -3,8 +3,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/services/supabase';
 import { useAuthStore } from '@/stores/auth';
 import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
+import Tabs from '@/components/ui/Tabs';
 import { getScopedVendor } from '@/utils/access';
 import { PROCTOR_TYPES, PROCTOR_TYPE_LABELS, INDIAN_STATES } from '@/utils/constants';
 import { useManagedByOptions } from '@/hooks/useManagedByOptions';
@@ -16,28 +18,14 @@ export default function AddProctorPage() {
   return (
     <div>
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-border">
-        <button
-          className={`px-4 py-2 text-sm font-medium transition-colors ${
-            activeTab === 0
-              ? 'text-accent border-b-2 border-accent'
-              : 'text-text3 hover:text-text'
-          }`}
-          onClick={() => setActiveTab(0)}
-        >
-          👤 Individual
-        </button>
-        <button
-          className={`px-4 py-2 text-sm font-medium transition-colors ${
-            activeTab === 1
-              ? 'text-accent border-b-2 border-accent'
-              : 'text-text3 hover:text-text'
-          }`}
-          onClick={() => setActiveTab(1)}
-        >
-          📤 Bulk Onboard
-        </button>
-      </div>
+      <Tabs
+        tabs={[
+          { id: 0, label: '👤 Individual' },
+          { id: 1, label: '📤 Bulk Onboard' },
+        ]}
+        activeTab={activeTab}
+        onChange={(id) => setActiveTab(id as number)}
+      />
 
       {/* Tab Content */}
       {activeTab === 0 ? <IndividualTab /> : <BulkTab />}
@@ -266,7 +254,7 @@ function IndividualTab() {
 
   return (
     <div className="max-w-3xl">
-      <div className="bg-surface border border-border rounded-lg p-6">
+      <Card className="p-6">
         {/* Personal Details */}
         <div className="mb-6">
           <h3 className="text-sm font-semibold text-text uppercase tracking-wide mb-4">Personal Details</h3>
@@ -464,7 +452,7 @@ function IndividualTab() {
             Clear
           </Button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
@@ -749,7 +737,7 @@ function BulkTab() {
         </div>
       )}
 
-      <div className="bg-surface border border-border rounded-lg p-6">
+      <Card className="p-6">
         {/* Step 1: Download Template */}
         <div className="mb-6">
           <h3 className="text-sm font-semibold text-text uppercase tracking-wide mb-2">Step 1 — Download Template</h3>
@@ -879,7 +867,7 @@ function BulkTab() {
             </div>
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

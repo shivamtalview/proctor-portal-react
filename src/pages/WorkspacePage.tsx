@@ -6,6 +6,9 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Modal from '@/components/ui/Modal';
+import Card from '@/components/ui/Card';
+import Table from '@/components/ui/Table';
+import Tabs from '@/components/ui/Tabs';
 import { logAudit } from '@/services/audit';
 import { PROCTOR_TYPES } from '@/utils/constants';
 import { useManagedByOptions } from '@/hooks/useManagedByOptions';
@@ -19,11 +22,11 @@ export default function WorkspacePage() {
   // Vendor role cannot access workspace
   if (user?.role === 'vendor') {
     return (
-      <div className="bg-surface border border-border rounded-lg p-6">
+      <Card className="p-6">
         <div className="bg-warning/10 border border-warning/30 text-warning rounded-lg p-4">
           Workspace is not available for vendor role.
         </div>
-      </div>
+      </Card>
     );
   }
 
@@ -38,38 +41,16 @@ export default function WorkspacePage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-border">
-        <button
-          onClick={() => setActiveTab(0)}
-          className={`px-4 py-2.5 text-[13px] font-semibold border-b-2 transition-colors ${
-            activeTab === 0
-              ? 'border-accent text-accent'
-              : 'border-transparent text-text3 hover:text-text2'
-          }`}
-        >
-          📅 Upcoming Tasks
-        </button>
-        <button
-          onClick={() => setActiveTab(1)}
-          className={`px-4 py-2.5 text-[13px] font-semibold border-b-2 transition-colors ${
-            activeTab === 1
-              ? 'border-accent text-accent'
-              : 'border-transparent text-text3 hover:text-text2'
-          }`}
-        >
-          📋 Scheduled Events
-        </button>
-        <button
-          onClick={() => setActiveTab(2)}
-          className={`px-4 py-2.5 text-[13px] font-semibold border-b-2 transition-colors ${
-            activeTab === 2
-              ? 'border-accent text-accent'
-              : 'border-transparent text-text3 hover:text-text2'
-          }`}
-        >
-          📌 My Notes
-        </button>
-      </div>
+      <Tabs
+        tabs={[
+          { id: 0, label: '📅 Upcoming Tasks' },
+          { id: 1, label: '📋 Scheduled Events' },
+          { id: 2, label: '📌 My Notes' },
+        ]}
+        activeTab={activeTab}
+        onChange={(id) => setActiveTab(id as number)}
+        variant="reserved"
+      />
 
       {/* Tab Content */}
       {activeTab === 0 && (
@@ -271,8 +252,8 @@ function TaskCard({ task, proctor, when, showPanel, onEvaluate }: TaskCardProps)
   };
 
   return (
-    <div
-      className={`bg-surface border border-border rounded-lg p-4 flex items-center gap-3 border-l-[3px] ${borderColor}`}
+    <Card
+      className={`p-4 flex items-center gap-3 border-l-[3px] ${borderColor}`}
     >
       <span
         className={`text-[11px] font-bold px-2 py-1 rounded ${
@@ -307,7 +288,7 @@ function TaskCard({ task, proctor, when, showPanel, onEvaluate }: TaskCardProps)
           🔒 {formatDate(task.scheduled_date)}
         </Button>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -437,122 +418,102 @@ function ScheduledEventsTab({
       </div>
 
       {/* Table */}
-      <div className="bg-surface border border-border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-surface2">
-              <tr>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Proctor
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Type
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Panel
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Scheduled Date & Time
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Attempt
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Status
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Score Out Of
-                </th>
-                <th className="px-3.5 py-2.5 text-left text-[11px] font-semibold text-text3 uppercase tracking-wide border-b border-border">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={8} className="px-3.5 py-8 text-center text-text3">
-                    Loading...
-                  </td>
-                </tr>
-              ) : filteredData.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="px-3.5 py-8 text-center text-text3">
-                    No scheduled events
-                  </td>
-                </tr>
-              ) : (
-                filteredData.map((item: any) => (
-                  <tr key={item.id} className="border-b border-border hover:bg-surface2/50">
-                    <td className="px-3.5 py-2.5">
-                      <div className="text-[13px] text-text">{item.proctor?.name || 'Unknown'}</div>
-                      <div className="text-[11px] text-text3">
-                        {item.proctor?.email || ''} · {item.proctor?.vendor || item.proctor?.managed_by}
-                      </div>
-                    </td>
-                    <td className="px-3.5 py-2.5">
-                      <span className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
-                        item.eval_type === 'demo' 
-                          ? 'bg-purple-500/15 text-purple-400' 
-                          : 'bg-blue-500/15 text-blue-400'
-                      }`}>
-                        {item.eval_type}
-                      </span>
-                    </td>
-                    <td className="px-3.5 py-2.5 text-[12px] text-text2">
-                      {item.panel_user}
-                    </td>
-                    <td className="px-3.5 py-2.5 text-[12px] text-text2">
-                      {formatDate(item.scheduled_date)}
-                      {item.scheduled_time && ` · ${item.scheduled_time}`}
-                    </td>
-                    <td className="px-3.5 py-2.5">
-                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-surface2 text-text">
-                        #{item.attempt_number}
-                      </span>
-                    </td>
-                    <td className="px-3.5 py-2.5">
-                      <span className="text-[11px] font-bold text-accent">
-                        📅 Scheduled
-                      </span>
-                    </td>
-                    <td className="px-3.5 py-2.5 text-[11px] font-mono text-text2">
-                      {item.score_out_of || '—'}
-                    </td>
-                    <td className="px-3.5 py-2.5">
-                      <div className="flex gap-1">
-                        {canEvaluateNow(item.scheduled_date, item.scheduled_time) ? (
-                          <Button variant="primary" size="sm" onClick={() => onEvaluate(item)}>
-                            📝 Evaluate
-                          </Button>
-                        ) : (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            disabled 
-                            title={`Unlocks 30min before: ${formatDate(item.scheduled_date)}${item.scheduled_time ? ' ' + item.scheduled_time : ''}`}
-                          >
-                            🔒 {formatDate(item.scheduled_date)}
-                          </Button>
-                        )}
-                        {user?.role === 'admin' && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => setEditingEval(item)}
-                          >
-                            ✏️ Edit
-                          </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <Table
+        data={filteredData}
+        isLoading={isLoading}
+        emptyMessage="No scheduled events"
+        columns={[
+          {
+            header: 'Proctor',
+            accessor: (item: any) => (
+              <>
+                <div className="text-[13px] text-text">{item.proctor?.name || 'Unknown'}</div>
+                <div className="text-[11px] text-text3">
+                  {item.proctor?.email || ''} · {item.proctor?.vendor || item.proctor?.managed_by}
+                </div>
+              </>
+            ),
+          },
+          {
+            header: 'Type',
+            accessor: (item: any) => (
+              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
+                item.eval_type === 'demo'
+                  ? 'bg-purple-500/15 text-purple-400'
+                  : 'bg-blue-500/15 text-blue-400'
+              }`}>
+                {item.eval_type}
+              </span>
+            ),
+          },
+          {
+            header: 'Panel',
+            accessor: (item: any) => item.panel_user,
+            className: 'text-[12px] text-text2',
+          },
+          {
+            header: 'Scheduled Date & Time',
+            accessor: (item: any) => (
+              <>
+                {formatDate(item.scheduled_date)}
+                {item.scheduled_time && ` · ${item.scheduled_time}`}
+              </>
+            ),
+            className: 'text-[12px] text-text2',
+          },
+          {
+            header: 'Attempt',
+            accessor: (item: any) => (
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-surface2 text-text">
+                #{item.attempt_number}
+              </span>
+            ),
+          },
+          {
+            header: 'Status',
+            accessor: () => (
+              <span className="text-[11px] font-bold text-accent">
+                📅 Scheduled
+              </span>
+            ),
+          },
+          {
+            header: 'Score Out Of',
+            accessor: (item: any) => item.score_out_of || '—',
+            className: 'text-[11px] font-mono text-text2',
+          },
+          {
+            header: 'Actions',
+            accessor: (item: any) => (
+              <div className="flex gap-1">
+                {canEvaluateNow(item.scheduled_date, item.scheduled_time) ? (
+                  <Button variant="primary" size="sm" onClick={() => onEvaluate(item)}>
+                    📝 Evaluate
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled
+                    title={`Unlocks 30min before: ${formatDate(item.scheduled_date)}${item.scheduled_time ? ' ' + item.scheduled_time : ''}`}
+                  >
+                    🔒 {formatDate(item.scheduled_date)}
+                  </Button>
+                )}
+                {user?.role === 'admin' && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEditingEval(item)}
+                  >
+                    ✏️ Edit
+                  </Button>
+                )}
+              </div>
+            ),
+          },
+        ]}
+      />
 
       {/* Edit/Reschedule Modal */}
       {editingEval && (
